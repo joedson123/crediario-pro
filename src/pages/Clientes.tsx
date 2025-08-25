@@ -63,7 +63,9 @@ const Clientes = () => {
   };
 
   const openMaps = (endereco: string) => {
-    window.open(`https://maps.google.com/?q=${encodeURIComponent(endereco)}`, "_blank");
+    // Open Google Maps with directions from current location to the address
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(endereco)}&travelmode=driving`;
+    window.open(mapsUrl, "_blank");
   };
 
   return (

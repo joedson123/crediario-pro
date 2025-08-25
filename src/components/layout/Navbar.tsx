@@ -81,19 +81,7 @@ const Navbar = () => {
               </Button>
             </Link>
             
-            <Link to="/mapa-clientes">
-              <Button
-                variant={isActive("/mapa-clientes") ? "secondary" : "ghost"}
-                className={`${
-                  isActive("/mapa-clientes")
-                    ? "bg-primary-light text-primary"
-                    : "text-primary-foreground hover:bg-primary-hover"
-                }`}
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                Mapa
-              </Button>
-            </Link>
+
             
             <Link to="/relatorios">
               <Button
@@ -218,19 +206,7 @@ const Navbar = () => {
                 </Button>
               </Link>
               
-              <Link to="/mapa-clientes" onClick={closeMobileMenu}>
-                <Button
-                  variant={isActive("/mapa-clientes") ? "secondary" : "ghost"}
-                  className={`w-full justify-start ${
-                    isActive("/mapa-clientes")
-                      ? "bg-primary-light text-primary"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Mapa
-                </Button>
-              </Link>
+
               
               <Link to="/relatorios" onClick={closeMobileMenu}>
                 <Button

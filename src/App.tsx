@@ -12,7 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Clientes from "./pages/Clientes";
 import ClienteDetalhes from "./pages/ClienteDetalhes";
 import NovoCliente from "./pages/NovoCliente";
-import MapaClientes from "./pages/MapaClientes";
+
 import RelatoriosProdutividade from "./pages/RelatoriosProdutividade";
 import Boletos from "./pages/Boletos";
 import Despesas from "./pages/Despesas";
@@ -50,7 +50,7 @@ const App = () => {
                 <Route path="clientes" element={<Clientes />} />
                 <Route path="clientes/:id" element={<ClienteDetalhes />} />
                 <Route path="novo-cliente" element={<NovoCliente />} />
-                <Route path="mapa-clientes" element={<MapaClientes />} />
+                
                 <Route path="relatorios" element={<RelatoriosProdutividade />} />
                 <Route path="boletos" element={<Boletos />} />
                 <Route path="despesas" element={<Despesas />} />
