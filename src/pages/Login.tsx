@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DollarSign, Eye, EyeOff, Lock, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,14 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,19 +30,16 @@ const Login = () => {
     setError('');
 
     try {
-      // Simulate authentication - In real app, use Supabase auth
-      if (email && password) {
-        // Store user session
-        localStorage.setItem('crediario_user', JSON.stringify({
-          email,
-          name: email.split('@')[0],
-          loginTime: new Date().toISOString()
-        }));
-        
-        // Redirect to dashboard
+      if (!email || !password) {
+        setError('Por favor, preencha todos os campos');
+        return;
+      }
+
+      const success = await login(email, password);
+      if (success) {
         navigate('/dashboard');
       } else {
-        setError('Por favor, preencha todos os campos');
+        setError('Credenciais inválidas');
       }
     } catch (err) {
       setError('Erro ao fazer login. Tente novamente.');
@@ -42,9 +48,22 @@ const Login = () => {
     }
   };
 
-  const handleDemoLogin = () => {
-    setEmail('demo@crediario.com');
-    setPassword('demo123');
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const success = await login('demo@crediario.com', 'demo123');
+      if (success) {
+        navigate('/dashboard');
+      } else {
+        setError('Erro ao fazer login com conta demo');
+      }
+    } catch (err) {
+      setError('Erro ao fazer login. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -144,8 +163,9 @@ const Login = () => {
                 variant="outline"
                 className="w-full mt-4 border-border text-foreground hover:bg-accent"
                 onClick={handleDemoLogin}
+                disabled={isLoading}
               >
-                Usar Conta Demo
+                {isLoading ? 'Entrando...' : 'Usar Conta Demo'}
               </Button>
             </div>
 
