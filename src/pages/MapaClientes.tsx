@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/data/mockData';
 import CheckInVisita from '@/components/CheckInVisita';
+import GeolocationPermission from '@/components/GeolocationPermission';
 import type { Cliente, DbClient } from '@/types';
 
 interface ClienteComLocalizacao extends Cliente {
@@ -20,11 +21,24 @@ const MapaClientes = () => {
   const [selectedClient, setSelectedClient] = useState<ClienteComLocalizacao | null>(null);
   const [checkInClient, setCheckInClient] = useState<ClienteComLocalizacao | null>(null);
   const [sortBy, setSortBy] = useState<'distance' | 'name' | 'amount'>('distance');
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   
   const { latitude, longitude, error: geoError, getCurrentPosition } = useGeolocation({
     enableHighAccuracy: true,
     watch: false
   });
+
+  const handlePermissionGranted = () => {
+    setHasLocationPermission(true);
+    setLocationError(null);
+    getCurrentPosition();
+  };
+
+  const handlePermissionDenied = (error: string) => {
+    setHasLocationPermission(false);
+    setLocationError(error);
+  };
 
   const { data: clientes = [], isLoading } = useQuery({
     queryKey: ['clients:map'],
@@ -127,6 +141,24 @@ const MapaClientes = () => {
     
     window.open(url, '_blank');
   };
+
+  // Show permission request if location permission not granted
+  if (!hasLocationPermission && !locationError) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Mapa de Clientes</h1>
+          <p className="text-muted-foreground mb-6">
+            Visualize e navegue até seus clientes
+          </p>
+        </div>
+        <GeolocationPermission 
+          onPermissionGranted={handlePermissionGranted}
+          onPermissionDenied={handlePermissionDenied}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
