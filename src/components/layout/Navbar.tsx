@@ -1,10 +1,13 @@
-import { Link, useLocation } from "react-router-dom";
-import { DollarSign, Users, Plus, BarChart3, FileText, Receipt, MapPin, TrendingUp, Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { DollarSign, Users, Plus, BarChart3, FileText, Receipt, MapPin, TrendingUp, Menu, X, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
@@ -15,6 +18,11 @@ const Navbar = () => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -128,6 +136,23 @@ const Navbar = () => {
                 Despesas
               </Button>
             </Link>
+            
+            {/* User Info & Logout */}
+            <div className="flex items-center gap-2 ml-4 pl-4 border-l border-primary-foreground/20">
+              <div className="flex items-center gap-2 text-primary-foreground">
+                <User className="h-4 w-4" />
+                <span className="text-sm font-medium">{user?.name}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-primary-foreground hover:bg-primary-hover"
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -248,6 +273,28 @@ const Navbar = () => {
                   Despesas
                 </Button>
               </Link>
+              
+              {/* User Info & Logout Mobile */}
+              <div className="border-t border-border pt-2 mt-2">
+                <div className="flex items-center justify-between p-2 text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="text-sm font-medium">{user?.name}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      handleLogout();
+                      closeMobileMenu();
+                    }}
+                    className="text-gray-700 hover:bg-gray-100"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
