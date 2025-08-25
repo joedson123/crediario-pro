@@ -24,6 +24,19 @@ const Login = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
+  // Hidden demo access with keyboard shortcut (Ctrl + D)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'd') {
+        event.preventDefault();
+        handleDemoLogin();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -148,26 +161,7 @@ const Login = () => {
               </Button>
             </form>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-card px-2 text-muted-foreground">ou</span>
-                </div>
-              </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full mt-4 border-border text-foreground hover:bg-accent"
-                onClick={handleDemoLogin}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Entrando...' : 'Usar Conta Demo'}
-              </Button>
-            </div>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
@@ -180,16 +174,7 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        {/* Demo Credentials */}
-        <Card className="mt-4 border-border">
-          <CardContent className="pt-4">
-            <h3 className="font-semibold text-foreground mb-2">Credenciais Demo:</h3>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p><strong>Email:</strong> demo@crediario.com</p>
-              <p><strong>Senha:</strong> demo123</p>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );

@@ -17,25 +17,90 @@ const Clientes = () => {
   const { data: clientes = [], isLoading } = useQuery({
     queryKey: ['customers:list'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar clientes com suas parcelas pendentes
+      const { data: clientsData, error: clientsError } = await supabase
+        .from('clients')
+        .select(`
+          *,
+          installments!inner(
+            id,
+            due_date,
+            status,
+            amount
+          )
+        `)
+        .eq('installments.status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (clientsError) throw clientsError;
+
+      // Buscar também clientes sem parcelas pendentes
+      const { data: allClientsData, error: allClientsError } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (allClientsError) throw allClientsError;
 
-      return (data as DbClient[]).map(client => ({
-        id: client.id,
-        nome: client.name,
-        telefone: client.phone,
-        endereco: client.address,
-        valorTotal: client.total_amount,
-        paid_amount: client.paid_amount, // Add this for calculation
-        formaPagamento: client.payment_type as "semanal" | "quinzenal" | "mensal",
-        dataPrimeiraParcela: new Date(client.first_payment_date),
-        dataCadastro: new Date(client.created_at),
-        parcelas: [] // Será carregado quando necessário
-      }));
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Processar clientes com parcelas pendentes
+      const clientsWithPendingInstallments = (clientsData || []).map((client: any) => {
+        const proximaParcela = client.installments
+          .filter((p: any) => p.status === 'pending')
+          .sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
+        
+        return {
+          id: client.id,
+          nome: client.name,
+          telefone: client.phone,
+          endereco: client.address,
+          valorTotal: client.total_amount,
+          paid_amount: client.paid_amount,
+          formaPagamento: client.payment_type as "semanal" | "quinzenal" | "mensal",
+          dataPrimeiraParcela: new Date(client.first_payment_date),
+          dataCadastro: new Date(client.created_at),
+          parcelas: [],
+          proximaCobranca: proximaParcela ? new Date(proximaParcela.due_date) : null,
+          temCobrancaHoje: proximaParcela?.due_date === today
+        };
+      });
+
+      // Processar clientes sem parcelas pendentes
+      const allClientsProcessed = (allClientsData || []).map((client: any) => {
+        const clientWithPending = clientsWithPendingInstallments.find(c => c.id === client.id);
+        if (clientWithPending) return clientWithPending;
+        
+        return {
+          id: client.id,
+          nome: client.name,
+          telefone: client.phone,
+          endereco: client.address,
+          valorTotal: client.total_amount,
+          paid_amount: client.paid_amount,
+          formaPagamento: client.payment_type as "semanal" | "quinzenal" | "mensal",
+          dataPrimeiraParcela: new Date(client.first_payment_date),
+          dataCadastro: new Date(client.created_at),
+          parcelas: [],
+          proximaCobranca: null,
+          temCobrancaHoje: false
+        };
+      });
+
+      // Ordenar: primeiro os que têm cobrança hoje, depois por data de próxima cobrança
+      return allClientsProcessed.sort((a, b) => {
+        if (a.temCobrancaHoje && !b.temCobrancaHoje) return -1;
+        if (!a.temCobrancaHoje && b.temCobrancaHoje) return 1;
+        
+        if (a.proximaCobranca && b.proximaCobranca) {
+          return a.proximaCobranca.getTime() - b.proximaCobranca.getTime();
+        }
+        
+        if (a.proximaCobranca && !b.proximaCobranca) return -1;
+        if (!a.proximaCobranca && b.proximaCobranca) return 1;
+        
+        return b.dataCadastro.getTime() - a.dataCadastro.getTime();
+      });
     }
   });
 
